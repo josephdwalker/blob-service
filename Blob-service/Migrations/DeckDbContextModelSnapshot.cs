@@ -30,8 +30,9 @@ namespace Blob_service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<int>("GameID")
-                        .HasColumnType("int");
+                    b.Property<string>("GameID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LeadingSuit")
                         .IsRequired()
@@ -68,8 +69,9 @@ namespace Blob_service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<int>("GameID")
-                        .HasColumnType("int");
+                    b.Property<string>("GameID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PlayerFiveBid")
                         .HasColumnType("int");
@@ -105,8 +107,9 @@ namespace Blob_service.Migrations
                     b.Property<int>("BotsPositions")
                         .HasColumnType("int");
 
-                    b.Property<int>("GameID")
-                        .HasColumnType("int");
+                    b.Property<string>("GameID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("NoTrumpsRound")
                         .HasColumnType("bit");
@@ -133,8 +136,9 @@ namespace Blob_service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<int>("GameID")
-                        .HasColumnType("int");
+                    b.Property<string>("GameID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PlayerFiveScore")
                         .HasColumnType("int");
@@ -177,8 +181,9 @@ namespace Blob_service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<int>("GameID")
-                        .HasColumnType("int");
+                    b.Property<string>("GameID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PlayerFiveCard")
                         .HasColumnType("nvarchar(max)");

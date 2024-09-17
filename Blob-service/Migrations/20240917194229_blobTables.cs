@@ -5,7 +5,7 @@
 namespace Blob_service.Migrations
 {
     /// <inheritdoc />
-    public partial class BlobTables : Migration
+    public partial class blobTables : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,7 +16,7 @@ namespace Blob_service.Migrations
                 {
                     ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    GameID = table.Column<int>(type: "int", nullable: false),
+                    GameID = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LeadingSuit = table.Column<string>(type: "nvarchar(1)", nullable: false),
                     PlayerOneCard = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PlayerTwoCard = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -36,7 +36,7 @@ namespace Blob_service.Migrations
                 {
                     ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    GameID = table.Column<int>(type: "int", nullable: false),
+                    GameID = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PlayerOneBid = table.Column<int>(type: "int", nullable: true),
                     PlayerTwoBid = table.Column<int>(type: "int", nullable: true),
                     PlayerThreeBid = table.Column<int>(type: "int", nullable: true),
@@ -55,11 +55,11 @@ namespace Blob_service.Migrations
                 {
                     ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    GameID = table.Column<int>(type: "int", nullable: false),
+                    GameID = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NumberOfPlayers = table.Column<int>(type: "int", nullable: false),
                     NumberOfRounds = table.Column<int>(type: "int", nullable: false),
-                    ScoreOnMakingBidOnly = table.Column<bool>(type: "bit", nullable: false),
                     NoTrumpsRound = table.Column<bool>(type: "bit", nullable: false),
+                    ScoreOnMakingBidOnly = table.Column<bool>(type: "bit", nullable: false),
                     BotsPositions = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -73,7 +73,7 @@ namespace Blob_service.Migrations
                 {
                     ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    GameID = table.Column<int>(type: "int", nullable: false),
+                    GameID = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PlayerOneCard = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PlayerTwoCard = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PlayerThreeCard = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -92,7 +92,7 @@ namespace Blob_service.Migrations
                 {
                     ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    GameID = table.Column<int>(type: "int", nullable: false),
+                    GameID = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Round = table.Column<int>(type: "int", nullable: false),
                     Tricks = table.Column<int>(type: "int", nullable: false),
                     TrumpSuit = table.Column<string>(type: "nvarchar(1)", nullable: false),
