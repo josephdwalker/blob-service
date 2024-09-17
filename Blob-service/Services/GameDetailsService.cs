@@ -13,9 +13,9 @@ namespace Blob_service.Services
             _db = db;
         }
 
-        public GameDetails GetDetails(int gameID)
+        public GameDetails? GetDetails(string gameID)
         {
-            var details = _db.GameDetails.Where(x => x.GameID == gameID).First();
+            var details = _db.GameDetails.Where(x => x.GameID == gameID).FirstOrDefault();
             return details;
         }
     }

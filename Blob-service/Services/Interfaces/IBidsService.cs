@@ -2,8 +2,10 @@
 {
     public interface IBidsService
     {
-        int?[] GetBids(int gameID);
-        int GetTricks(int gameID);
-        void SetBids(int gameID, int player, int?[] bidList);
+        int?[] GetBids(string gameID);
+
+        int GetTricks(string gameID);
+        
+        void SetBids(string gameID, int player, int?[] bidList);
     }
 }

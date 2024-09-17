@@ -7,7 +7,7 @@ namespace Blob_service.Hubs
         private const int MaxUsersInGame = 6;
         public static Dictionary<string, string> users = new Dictionary<string, string>();
         public static Dictionary<string, string> availableGames = new Dictionary<string, string>();
-        public static Dictionary<int, List<string>> currentGames = new Dictionary<int, List<string>>();
+        public static Dictionary<string, List<string>> currentGames = new Dictionary<string, List<string>>();
 
         public async override Task OnConnectedAsync()
         {
@@ -55,7 +55,7 @@ namespace Blob_service.Hubs
             currentGames.Add(gameId, new List<string> { username });
             await Clients.Caller.SendAsync("GameDetails", gameId, currentGames[gameId]);
             await Clients.All.SendAsync("AvailableGames", availableGames.Keys);
-            await Groups.AddToGroupAsync(Context.ConnectionId, gameId.ToString());
+            await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
         }
 
         public async Task JoinGame(string opponentUsername, string username)
@@ -64,9 +64,9 @@ namespace Blob_service.Hubs
             if (currentGames[gameId].Count < MaxUsersInGame)
             {
                 currentGames[gameId].Add(username);
-                await Groups.AddToGroupAsync(Context.ConnectionId, gameId.ToString());
-                await Clients.Group(gameId.ToString()).SendAsync("GameDetails", gameId, currentGames[gameId]);
-                await Clients.Group(gameId.ToString()).SendAsync("GameChatMessage", username + " has joined the game!");
+                await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
+                await Clients.Group(gameId).SendAsync("GameDetails", gameId, currentGames[gameId]);
+                await Clients.Group(gameId).SendAsync("GameChatMessage", username + " has joined the game!");
                 if (currentGames[gameId].Count >= MaxUsersInGame)
                 {
                     availableGames.Remove(opponentUsername);
@@ -75,10 +75,10 @@ namespace Blob_service.Hubs
             }
         }
 
-        public async Task LeaveGame(int gameId, string username)
+        public async Task LeaveGame(string gameId, string username)
         {
-            await Clients.Group(gameId.ToString()).SendAsync("GameChatMessage", username + " has left the game ");
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, gameId.ToString());
+            await Clients.Group(gameId).SendAsync("GameChatMessage", username + " has left the game ");
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, gameId);
             currentGames[gameId].Remove(username);
             if (currentGames[gameId].Count == 0)
             {
@@ -86,14 +86,14 @@ namespace Blob_service.Hubs
             }
         }
 
-        public async Task SendGameChatMessage(int gameId, string username, string message)
+        public async Task SendGameChatMessage(string gameId, string username, string message)
         {
-            await Clients.Group(gameId.ToString()).SendAsync("GameChatMessage", username + ": " + message);
+            await Clients.Group(gameId).SendAsync("GameChatMessage", username + ": " + message);
         }
 
-        private static int GetGameId(string username)
+        private static string GetGameId(string username)
         {
-            return Math.Abs(username.GetHashCode());
+            return Math.Abs(username.GetHashCode()).ToString();
         }
     }
 }

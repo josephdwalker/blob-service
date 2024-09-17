@@ -19,24 +19,23 @@ namespace Blob_service.Services
             _hub = hub;
             _scoreService = scoreService;
         }
-        public string?[] GetHand(int gameID, int player)
+
+        public string?[] GetHand(string gameID, int player)
         {
             var hand = ConvertToArray(_db.Hands.Where(x => x.GameID == gameID)).Select(x => x[player]).Where(x => x != null).ToArray();
             return hand;
         }
 
-        public ActiveHand GetActiveHand(int gameID)
+        public ActiveHand GetActiveHand(string gameID)
         {
             var active = _db.ActiveHand.Where(x => x.GameID == gameID).OrderByDescending(x => x.ID).First();
             return active;
         }
 
-        public void PlayCard(int gameID, int player, bool leadingCard, string card)
+        public void PlayCard(string gameID, int player, bool leadingCard, string card)
         {
             var hand = GetHand(gameID, player);
-
             var numberOfPlayers = _db.GameDetails.Where(x => x.GameID == gameID).First().NumberOfPlayers;
-
             var nextPlayer = (player + 1) % numberOfPlayers;
             var newTrick = false;
 
@@ -53,7 +52,6 @@ namespace Blob_service.Services
             {
                 var active = GetActiveHand(gameID);
                 string?[] played = { active.PlayerOneCard, active.PlayerTwoCard, active.PlayerThreeCard, active.PlayerFourCard, active.PlayerFiveCard, active.PlayerSixCard };
-
                 played[player] = card;
                 active.PlayerOneCard = played[0];
                 active.PlayerTwoCard = played[1];
@@ -71,7 +69,7 @@ namespace Blob_service.Services
 
             _db.SaveChanges();
 
-            _hub.Clients.Group(gameID.ToString()).SendAsync("CardsUpdate", nextPlayer, newTrick, player, card);
+            _hub.Clients.Group(gameID).SendAsync("CardsUpdate", nextPlayer, newTrick, player, card);
         }
 
         private static void UpdateHand(int player, string card, IQueryable<SixPlayerHand> table)
@@ -108,6 +106,7 @@ namespace Blob_service.Services
         private static string?[][] ConvertToArray(IEnumerable<SixPlayerHand> source)
         {
             var result = new List<string?[]>();
+
             foreach (var item in source)
             {
                 string?[] row = { item.PlayerOneCard, item.PlayerTwoCard, item.PlayerThreeCard, item.PlayerFourCard, item.PlayerFiveCard, item.PlayerSixCard };

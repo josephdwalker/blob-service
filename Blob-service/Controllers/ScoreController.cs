@@ -25,7 +25,7 @@ namespace Blob_service.Controllers
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpGet("{gameID}/gameID/getScores")]
-        public IActionResult GetScores(int gameID)
+        public IActionResult GetScores(string gameID)
         {
             var scores = _scoreService.GetScores(gameID);
             return Ok(scores);

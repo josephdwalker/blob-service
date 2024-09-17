@@ -33,18 +33,10 @@ namespace Blob_service.Services
             {
                 var trump = gameDetails.NoTrumpsRound ? NoTrumps[i%NoTrumps.Length] : Trumps[i%Trumps.Length];
 
-                int newTricks;
-
-                if (i < totalRounds / 2)
-                {
-                    newTricks = i + 1;
-                }
-                else
-                {
-                    newTricks = totalRounds - i;
-                }
+                var newTricks = i < totalRounds / 2 ? i + 1 : totalRounds - i;
 
                 var score = new Scores { GameID = gameDetails.GameID, Round = i + 1, Tricks = newTricks, TrumpSuit = trump };
+
                 _db.Scores.Add(score);
             }
 
@@ -73,10 +65,10 @@ namespace Blob_service.Services
 
             _db.SaveChanges();
 
-            _hub.Clients.Group(gameDetails.GameID.ToString()).SendAsync("BidUpdate", 0);
+            _hub.Clients.Group(gameDetails.GameID).SendAsync("BidUpdate", 0);
         }
 
-        public CumulativeScores[] GetScores(int gameID)
+        public CumulativeScores[] GetScores(string gameID)
         {
             var scores = _db.Scores.Where(x => x.GameID == gameID).ToArray();
             List<CumulativeScores> cumulativeScores = new();
@@ -119,13 +111,12 @@ namespace Blob_service.Services
 
                     cumulativeScores.Add(emptyScore);
                 }
-
             }
 
             return cumulativeScores.ToArray();
         }
 
-        private void DealCards(int gameID, int tricks, int numberOfPlayers)
+        private void DealCards(string gameID, int tricks, int numberOfPlayers)
         {
             char[] values = { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A' };
             var deck = new List<string>();
@@ -179,7 +170,7 @@ namespace Blob_service.Services
             _db.SaveChanges();
         }
 
-        public int TrickEnded(int gameID, string?[] played, char leadingSuit)
+        public int TrickEnded(string gameID, string?[] played, char leadingSuit)
         {
             var score = _db.Scores.Where(x => x.GameID == gameID && x.PlayerOneScore != null).OrderByDescending(x => x.ID).First();
             var winningPlayer = FindWinningPlayer(played, leadingSuit, score.TrumpSuit);
@@ -214,7 +205,7 @@ namespace Blob_service.Services
             return winningPlayer;
         }
 
-        private void RoundEnded(int gameID, Scores score)
+        private void RoundEnded(string gameID, Scores score)
         {
             var bids = _db.Bids.Where(x => x.GameID == gameID).OrderByDescending(x => x.ID).First();
 
@@ -265,7 +256,7 @@ namespace Blob_service.Services
             }
         }
 
-        private void GameEnded(int gameID)
+        private void GameEnded(string gameID)
         {
             foreach (var row in _db.Bids.Where(x => x.GameID == gameID))
             {
@@ -275,7 +266,7 @@ namespace Blob_service.Services
             _db.GameDetails.Remove(_db.GameDetails.Where(x => x.GameID == gameID).First());
         }
 
-        private void StartNextRound(int gameID, Scores score)
+        private void StartNextRound(string gameID, Scores score)
         {
             _db.Bids.Add(new Bids { GameID = gameID });
 
@@ -306,7 +297,7 @@ namespace Blob_service.Services
 
             _db.SaveChanges();
 
-            _hub.Clients.Group(gameID.ToString()).SendAsync("BidUpdate", score.Round % gameDetails.NumberOfPlayers);
+            _hub.Clients.Group(gameID).SendAsync("BidUpdate", score.Round % gameDetails.NumberOfPlayers);
         }
 
         private static int FindWinningPlayer(string?[] cards, char leading, char trump)

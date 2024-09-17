@@ -18,7 +18,7 @@ namespace Blob_service.Controllers
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpGet("{gameID}/gameID/getBids")]
-        public ActionResult GetBids(int gameID)
+        public ActionResult GetBids(string gameID)
         {
             var bids = _bidsService.GetBids(gameID);
             return Ok(bids);
@@ -27,7 +27,7 @@ namespace Blob_service.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet("{gameID}/gameID/{player}/player/{bid}/bid/setBid")]
-        public ActionResult SetBid(int gameID, int player, int bid)
+        public ActionResult SetBid(string gameID, int player, int bid)
         {
             if (bid % 1 != 0 || bid < 0)
             {
@@ -36,7 +36,12 @@ namespace Blob_service.Controllers
 
             var gameDetails = _gameDetailsService.GetDetails(gameID);
 
-            if (!new List<int> { 0, 1, 2, 3, 4, 5 }.Take(gameDetails.NumberOfPlayers).Contains(player))
+            if (gameDetails == null)
+            {
+                return BadRequest("Not a valid game");
+            }
+
+            if (!new List<int> { 0, 1, 2, 3, 4, 5 }.Take(gameDetails?.NumberOfPlayers ?? 0).Contains(player))
             {
                 return BadRequest("Not a valid player");
             }

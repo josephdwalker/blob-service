@@ -4,6 +4,6 @@ namespace Blob_service.Services.Interfaces
 {
     public interface IGameDetailsService
     {
-        GameDetails GetDetails(int gameID);
+        GameDetails? GetDetails(string gameID);
     }
 }

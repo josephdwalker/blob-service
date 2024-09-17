@@ -6,8 +6,8 @@ namespace Blob_service.Services.Interfaces
     {
         void StartGame(GameDetails gameDetails);
 
-        public CumulativeScores[] GetScores(int gameID);
+        public CumulativeScores[] GetScores(string gameID);
 
-        int TrickEnded(int gameID, string?[] played, char leadingSuit);
+        int TrickEnded(string gameID, string?[] played, char leadingSuit);
     }
 }

@@ -16,7 +16,7 @@ namespace Blob_service.Services
             _hub = hub;
         }
 
-        public int?[] GetBids(int gameID)
+        public int?[] GetBids(string gameID)
         {
             var numberOfPlayers = _db.GameDetails.Where(x => x.GameID == gameID)?.FirstOrDefault()?.NumberOfPlayers;
             var bids = _db.Bids.Where(x => x.GameID == gameID)?.OrderByDescending(x => x.ID).FirstOrDefault();
@@ -24,13 +24,13 @@ namespace Blob_service.Services
             return bidList.Take(numberOfPlayers ?? 0).ToArray();
         }
 
-        public int GetTricks(int gameID)
+        public int GetTricks(string gameID)
         {
             var tricks = _db.Scores.Where(x => x.GameID == gameID && x.PlayerOneScore != null).OrderByDescending(x => x.ID).First().Tricks;
             return tricks;
         }
 
-        public void SetBids(int gameID, int player, int?[] bidList)
+        public void SetBids(string gameID, int player, int?[] bidList)
         {
             var bids = _db.Bids.Where(x => x.GameID == gameID).OrderByDescending(x => x.ID).First();
 
@@ -45,12 +45,12 @@ namespace Blob_service.Services
 
             var numberOfPlayers = _db.GameDetails.Where(x => x.GameID == gameID).First().NumberOfPlayers;
 
-            _hub.Clients.Group(gameID.ToString()).SendAsync("BidUpdate", bidList.Contains(null) ? (player + 1) % numberOfPlayers : -1, bidList[player], player);
+            _hub.Clients.Group(gameID).SendAsync("BidUpdate", bidList.Contains(null) ? (player + 1) % numberOfPlayers : -1, bidList[player], player);
             
             if (!bidList.Contains(null))
             {
                 var score = _db.Scores.Where(x => x.GameID == gameID && x.PlayerOneScore != null).OrderByDescending(x => x.ID).First();
-                _hub.Clients.Group(gameID.ToString()).SendAsync("CardsUpdate", (score.Round - 1) % numberOfPlayers, true);
+                _hub.Clients.Group(gameID).SendAsync("CardsUpdate", (score.Round - 1) % numberOfPlayers, true);
             }
         }
     }

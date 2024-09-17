@@ -22,11 +22,16 @@ namespace Blob_service.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet("{gameID}/gameID/{player}/player/getHand")]
-        public ActionResult GetHand(int gameID, int player)
+        public ActionResult GetHand(string gameID, int player)
         {
             var gameDetails = _gameDetailsService.GetDetails(gameID);
 
-            if (!new List<int>{ 0, 1, 2, 3, 4, 5 }.Take(gameDetails.NumberOfPlayers).Contains(player))
+            if (gameDetails == null)
+            {
+                return BadRequest("Not a valid game");
+            }
+
+            if (!new List<int>{ 0, 1, 2, 3, 4, 5 }.Take(gameDetails?.NumberOfPlayers ?? 0).Contains(player))
             {
                 return BadRequest("Not a valid player");
             }
@@ -39,11 +44,16 @@ namespace Blob_service.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet("{gameID}/gameID/{player}/player/{leadingCard}/leadingCard/{card}/card/playCard")]
-        public ActionResult PlayCard(int gameID, int player, bool leadingCard, string card)
+        public ActionResult PlayCard(string gameID, int player, bool leadingCard, string card)
         {
             var gameDetails = _gameDetailsService.GetDetails(gameID);
 
-            if (!new List<int> { 0, 1, 2, 3, 4, 5 }.Take(gameDetails.NumberOfPlayers).Contains(player))
+            if (gameDetails == null)
+            {
+                return BadRequest("Not a valid game");
+            }
+
+            if (!new List<int> { 0, 1, 2, 3, 4, 5 }.Take(gameDetails?.NumberOfPlayers ?? 0).Contains(player))
             {
                 return BadRequest("Not a valid player");
             }
