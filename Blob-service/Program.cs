@@ -39,5 +39,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHub<GameHub>("/GameHub");
+app.MapHub<LobbyHub>("/LobbyHub");
 
 app.Run();
