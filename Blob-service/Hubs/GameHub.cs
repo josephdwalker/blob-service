@@ -23,10 +23,10 @@ namespace Blob_service.Hubs
 
         public async Task Register(string username, string gameID)
         {
+            await Groups.AddToGroupAsync(Context.ConnectionId, gameID);
             if (!users.ContainsValue(username))
             {
                 users.Add(Context.ConnectionId, username);
-                await Groups.AddToGroupAsync(Context.ConnectionId, gameID);
                 if (currentGames.TryGetValue(gameID, out var yes))
                 {
                     currentGames[gameID].Add(username);
@@ -38,6 +38,7 @@ namespace Blob_service.Hubs
                 await Clients.Group(gameID).SendAsync("GameDetails", currentGames[gameID]);
                 await Clients.Group(gameID).SendAsync("GameChatMessage", username + " has joined the lobby!");
             }
+            await Clients.Caller.SendAsync("GameDetails", currentGames[gameID]);
         }
 
         public async Task LeaveGame(string gameId, string username)
