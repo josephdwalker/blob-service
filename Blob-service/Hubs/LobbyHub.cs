@@ -12,7 +12,6 @@ namespace Blob_service.Hubs
         public async override Task OnConnectedAsync()
         {
             await Clients.Caller.SendAsync("AvailableGames", availableGames);
-            await base.OnConnectedAsync();
         }
 
         public async override Task OnDisconnectedAsync(Exception? exception)
@@ -20,7 +19,6 @@ namespace Blob_service.Hubs
             var username = users[Context.ConnectionId];
             await Clients.All.SendAsync("LobbyChatMessage", username + " has left the lobby");
             users.Remove(username);
-            await base.OnDisconnectedAsync(exception);
         }
 
         public async Task Register(string username, string gameID)

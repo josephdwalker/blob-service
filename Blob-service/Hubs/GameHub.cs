@@ -11,14 +11,18 @@ namespace Blob_service.Hubs
         public async override Task OnDisconnectedAsync(Exception? exception)
         {
             var username = users[Context.ConnectionId];
-            await Clients.All.SendAsync("LobbyChatMessage", username + " has left the lobby");
             users.Remove(username);
-            var currentGame = currentGames.Where(x => x.Value.Contains(username)).FirstOrDefault().Key;
-            if (currentGame != default)
+            var gameID = currentGames.Where(x => x.Value.Contains(username)).FirstOrDefault().Key;
+            if (gameID != default)
             {
-                await LeaveGame(currentGame, username);
+                await Clients.Group(gameID).SendAsync("GameChatMessage", username + " has left the game ");
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, gameID);
+                currentGames[gameID].Remove(username);
+                if (currentGames[gameID].Count == 0)
+                {
+                    currentGames.Remove(gameID);
+                }
             }
-            await base.OnDisconnectedAsync(exception);
         }
 
         public async Task Register(string username, string gameID)
@@ -27,9 +31,12 @@ namespace Blob_service.Hubs
             if (!users.ContainsValue(username))
             {
                 users.Add(Context.ConnectionId, username);
-                if (currentGames.TryGetValue(gameID, out var yes))
+                if (currentGames.TryGetValue(gameID, out var currentGame))
                 {
-                    currentGames[gameID].Add(username);
+                    if (currentGame.Count < MaxUsersInGame)
+                    {
+                        currentGames[gameID].Add(username);
+                    }
                 }
                 else
                 {
@@ -39,17 +46,6 @@ namespace Blob_service.Hubs
                 await Clients.Group(gameID).SendAsync("GameChatMessage", username + " has joined the lobby!");
             }
             await Clients.Caller.SendAsync("GameDetails", currentGames[gameID]);
-        }
-
-        public async Task LeaveGame(string gameId, string username)
-        {
-            await Clients.Group(gameId).SendAsync("GameChatMessage", username + " has left the game ");
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, gameId);
-            currentGames[gameId].Remove(username);
-            if (currentGames[gameId].Count == 0)
-            {
-                currentGames.Remove(gameId);
-            }
         }
 
         public async Task SendGameChatMessage(string gameId, string username, string message)

@@ -24,12 +24,6 @@ namespace Blob_service.Services
             return bidList.Take(numberOfPlayers ?? 0).ToArray();
         }
 
-        public int GetTricks(string gameID)
-        {
-            var tricks = _db.Scores.Where(x => x.GameID == gameID && x.PlayerOneScore != null).OrderByDescending(x => x.ID).First().Tricks;
-            return tricks;
-        }
-
         public void SetBids(string gameID, int player, int?[] bidList)
         {
             var bids = _db.Bids.Where(x => x.GameID == gameID).OrderByDescending(x => x.ID).First();
@@ -50,7 +44,7 @@ namespace Blob_service.Services
             if (!bidList.Contains(null))
             {
                 var score = _db.Scores.Where(x => x.GameID == gameID && x.PlayerOneScore != null).OrderByDescending(x => x.ID).First();
-                _hub.Clients.Group(gameID).SendAsync("CardsUpdate", (score.Round - 1) % numberOfPlayers, true);
+                _hub.Clients.Group(gameID).SendAsync("CardsUpdate", (score.Round - 1) % numberOfPlayers);
             }
         }
     }

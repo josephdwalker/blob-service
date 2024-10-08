@@ -116,6 +116,12 @@ namespace Blob_service.Services
             return cumulativeScores.ToArray();
         }
 
+        public Scores GetCurrentScore(string gameID)
+        {
+            var score = _db.Scores.Where(x => x.GameID == gameID && x.PlayerOneScore != null).OrderByDescending(x => x.ID).First();
+            return score;
+        }
+
         private void DealCards(string gameID, int tricks, int numberOfPlayers)
         {
             char[] values = { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A' };
@@ -300,7 +306,7 @@ namespace Blob_service.Services
             _hub.Clients.Group(gameID).SendAsync("BidUpdate", score.Round % gameDetails.NumberOfPlayers);
         }
 
-        private static int FindWinningPlayer(string?[] cards, char leading, char trump)
+        public static int FindWinningPlayer(string?[] cards, char leading, char trump)
         {
             var winningCard = cards[0];
 

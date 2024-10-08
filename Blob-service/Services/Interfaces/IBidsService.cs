@@ -4,8 +4,6 @@
     {
         int?[] GetBids(string gameID);
 
-        int GetTricks(string gameID);
-        
         void SetBids(string gameID, int player, int?[] bidList);
     }
 }

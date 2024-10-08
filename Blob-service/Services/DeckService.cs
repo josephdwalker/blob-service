@@ -26,9 +26,15 @@ namespace Blob_service.Services
             return hand;
         }
 
-        public ActiveHand GetActiveHand(string gameID)
+        public ActiveHand? GetActiveHand(string gameID)
         {
-            var active = _db.ActiveHand.Where(x => x.GameID == gameID).OrderByDescending(x => x.ID).First();
+            var active = _db.ActiveHand.Where(x => x.GameID == gameID).OrderByDescending(x => x.ID).FirstOrDefault();
+            return active;
+        }
+
+        public ActiveHand[] GetActiveHands(string gameID)
+        {
+            var active = _db.ActiveHand.Where(x => x.GameID == gameID).ToArray();
             return active;
         }
 
@@ -37,7 +43,6 @@ namespace Blob_service.Services
             var hand = GetHand(gameID, player);
             var numberOfPlayers = _db.GameDetails.Where(x => x.GameID == gameID).First().NumberOfPlayers;
             var nextPlayer = (player + 1) % numberOfPlayers;
-            var newTrick = false;
 
             UpdateHand(player, card, _db.Hands.Where(x => x.GameID == gameID));
 
@@ -63,13 +68,12 @@ namespace Blob_service.Services
                 if (!played.Take(numberOfPlayers).Contains(null))
                 {
                     nextPlayer = _scoreService.TrickEnded(gameID, played, active.LeadingSuit);
-                    newTrick = true;
                 }
             }
 
             _db.SaveChanges();
 
-            _hub.Clients.Group(gameID).SendAsync("CardsUpdate", nextPlayer, newTrick, player, card);
+            _hub.Clients.Group(gameID).SendAsync("CardsUpdate", nextPlayer, player, card);
         }
 
         private static void UpdateHand(int player, string card, IQueryable<SixPlayerHand> table)

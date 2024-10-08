@@ -6,8 +6,10 @@ namespace Blob_service.Services.Interfaces
     {
         string?[] GetHand(string gameID, int player);
 
-        ActiveHand GetActiveHand(string gameID);
-        
+        ActiveHand? GetActiveHand(string gameID);
+
+        ActiveHand[] GetActiveHands(string gameID);
+
         void PlayCard(string gameID, int player, bool leadingCard, string card);
     }
 }

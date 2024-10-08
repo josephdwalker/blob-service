@@ -1,4 +1,5 @@
-﻿using Blob_service.Services.Interfaces;
+﻿using Blob_service.Services;
+using Blob_service.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,12 +11,14 @@ namespace Blob_service.Controllers
     {
         private readonly IDeckService _deckService;
         private readonly IBidsService _bidsService;
+        private readonly IScoresService _scoresService;
         private readonly IGameDetailsService _gameDetailsService;
 
-        public DeckController(IDeckService deckService, IBidsService bidsService, IGameDetailsService gameDetailsService)
+        public DeckController(IDeckService deckService, IBidsService bidsService, IScoresService scoresService, IGameDetailsService gameDetailsService)
         {
             _deckService = deckService;
             _bidsService = bidsService;
+            _scoresService = scoresService;
             _gameDetailsService = gameDetailsService;
         }
 
@@ -43,8 +46,8 @@ namespace Blob_service.Controllers
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet("{gameID}/gameID/{player}/player/{leadingCard}/leadingCard/{card}/card/playCard")]
-        public ActionResult PlayCard(string gameID, int player, bool leadingCard, string card)
+        [HttpGet("{gameID}/gameID/{player}/player/{card}/card/playCard")]
+        public ActionResult PlayCard(string gameID, int player, string card)
         {
             var gameDetails = _gameDetailsService.GetDetails(gameID);
 
@@ -53,7 +56,7 @@ namespace Blob_service.Controllers
                 return BadRequest("Not a valid game");
             }
 
-            if (!new List<int> { 0, 1, 2, 3, 4, 5 }.Take(gameDetails?.NumberOfPlayers ?? 0).Contains(player))
+            if (!new List<int> { 0, 1, 2, 3, 4, 5 }.Take(gameDetails.NumberOfPlayers).Contains(player))
             {
                 return BadRequest("Not a valid player");
             }
@@ -72,23 +75,44 @@ namespace Blob_service.Controllers
                 return BadRequest("That card is not in your hand");
             }
 
-            if (!leadingCard)
-            {
-                var active = _deckService.GetActiveHand(gameID);
-                string?[] played = { active.PlayerOneCard, active.PlayerTwoCard, active.PlayerThreeCard, active.PlayerFourCard, active.PlayerFiveCard, active.PlayerSixCard };
+            var currentScore = _scoresService.GetCurrentScore(gameID);
+            var active = _deckService.GetActiveHand(gameID);
+            string?[] played = { active?.PlayerOneCard, active?.PlayerTwoCard, active?.PlayerThreeCard, active?.PlayerFourCard, active?.PlayerFiveCard, active?.PlayerSixCard };
 
+            var activeHands = _deckService.GetActiveHands(gameID);
+            var leadingCard = activeHands.Length == 0 || !played.Take(gameDetails.NumberOfPlayers).Contains(null);
+
+            if (leadingCard)
+            {
+                if (activeHands.Length == 0 && (player + 1) % gameDetails.NumberOfPlayers != currentScore.Round % gameDetails.NumberOfPlayers)
+                {
+                    return BadRequest("Not your turn to play a card");
+                }
+
+                if (!played.Take(gameDetails.NumberOfPlayers).Contains(null))
+                {
+                    var previousWinner = ScoresService.FindWinningPlayer(played.Take(gameDetails.NumberOfPlayers).ToArray(), active.LeadingSuit, currentScore.TrumpSuit);
+                    if (previousWinner != player)
+                    {
+                        return BadRequest("Not your turn to play a card");
+                    }
+                }
+            } 
+            else
+            {
                 if (played[player] != null)
                 {
                     return BadRequest("You have already played a card");
                 }
 
-                if (active.LeadingSuit != card[1])
+                if (played.Take(gameDetails.NumberOfPlayers).ToArray()[(player-1+gameDetails.NumberOfPlayers)%gameDetails.NumberOfPlayers] == null)
                 {
-                    var handSuits = hand.Where(x => x != null).Select(x => x?[1]);
-                    if (handSuits.Contains(active.LeadingSuit))
-                    {
-                        return BadRequest("You must follow suit");
-                    }
+                    return BadRequest("Not your turn to play a card");
+                }
+
+                if (!leadingCard && active?.LeadingSuit != card[1] && hand.Select(x => x?[1]).Contains(active?.LeadingSuit))
+                {
+                    return BadRequest("You must follow suit");
                 }
             }
 

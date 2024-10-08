@@ -8,11 +8,13 @@ namespace Blob_service.Controllers
     public class BidsController : ControllerBase
     {
         private readonly IBidsService _bidsService;
+        private readonly IScoresService _scoresService;
         private readonly IGameDetailsService _gameDetailsService;
 
-        public BidsController(IBidsService bidsService, IGameDetailsService gameDetailsService)
+        public BidsController(IBidsService bidsService, IScoresService scoresService, IGameDetailsService gameDetailsService)
         {
             _bidsService = bidsService;
+            _scoresService = scoresService;
             _gameDetailsService = gameDetailsService;
         }
 
@@ -55,7 +57,7 @@ namespace Blob_service.Controllers
 
             if (bidList.Where(x => x == null).Count() == 1)
             {
-                if (bidList.Sum() + bid == _bidsService.GetTricks(gameID))
+                if (bidList.Sum() + bid == _scoresService.GetCurrentScore(gameID).Tricks)
                 {
                     return BadRequest("You are forced, invalid bid");
                 }
