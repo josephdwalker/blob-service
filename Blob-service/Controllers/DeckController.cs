@@ -34,7 +34,7 @@ namespace Blob_service.Controllers
                 return BadRequest("Not a valid game");
             }
 
-            if (!new List<int>{ 0, 1, 2, 3, 4, 5 }.Take(gameDetails?.NumberOfPlayers ?? 0).Contains(player))
+            if (!new List<int>{ 0, 1, 2, 3, 4, 5 }.Take(gameDetails.NumberOfPlayers).Contains(player))
             {
                 return BadRequest("Not a valid player");
             }
@@ -42,6 +42,15 @@ namespace Blob_service.Controllers
             var hand = _deckService.GetHand(gameID, player);
 
             return Ok(hand);
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpGet("{gameID}/gameID/getActiveHands")]
+        public ActionResult GetActiveHands(string gameID)
+        {
+            var hands = _deckService.GetActiveHands(gameID);
+            return Ok(hands);
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
