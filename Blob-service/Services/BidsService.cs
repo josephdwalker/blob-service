@@ -9,16 +9,18 @@ namespace Blob_service.Services
     {
         private readonly DeckDbContext _db;
         private readonly IHubContext<GameHub> _hub;
+        private readonly IGameDetailsService _gameDetailsService;
 
-        public BidsService(DeckDbContext db, IHubContext<GameHub> hub)
+        public BidsService(DeckDbContext db, IHubContext<GameHub> hub, IGameDetailsService gameDetailsService)
         {
             _db = db;
             _hub = hub;
+            _gameDetailsService = gameDetailsService;
         }
 
         public int?[] GetBids(string gameID)
         {
-            var numberOfPlayers = _db.GameDetails.Where(x => x.GameID == gameID)?.FirstOrDefault()?.NumberOfPlayers;
+            var numberOfPlayers = _gameDetailsService.GetDetails(gameID)?.NumberOfPlayers;
             var bids = _db.Bids.Where(x => x.GameID == gameID)?.OrderByDescending(x => x.ID).FirstOrDefault();
             int?[] bidList = { bids?.PlayerOneBid, bids?.PlayerTwoBid, bids?.PlayerThreeBid, bids?.PlayerFourBid, bids?.PlayerFiveBid, bids?.PlayerSixBid };
             return bidList.Take(numberOfPlayers ?? 0).ToArray();

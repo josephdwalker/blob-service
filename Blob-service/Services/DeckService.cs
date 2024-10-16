@@ -11,13 +11,15 @@ namespace Blob_service.Services
     {
         private readonly DeckDbContext _db;
         private readonly IHubContext<GameHub> _hub;
-        private readonly IScoresService _scoreService;
+        private readonly IScoresService _scoresService;
+        private readonly IGameDetailsService _gameDetailsService;
 
-        public DeckService(DeckDbContext db, IHubContext<GameHub> hub, IScoresService scoreService)
+        public DeckService(DeckDbContext db, IHubContext<GameHub> hub, IScoresService scoreService, IGameDetailsService gameDetailsService)
         {
             _db = db;
             _hub = hub;
-            _scoreService = scoreService;
+            _scoresService = scoreService;
+            _gameDetailsService = gameDetailsService;
         }
 
         public string?[] GetHand(string gameID, int player)
@@ -36,6 +38,26 @@ namespace Blob_service.Services
         {
             var active = _db.ActiveHand.Where(x => x.GameID == gameID).ToArray();
             return active;
+        }
+
+        public int FindPreviousWinner(string gameID)
+        {
+            var gameDetails = _gameDetailsService.GetDetails(gameID);
+            var currentScore = _scoresService.GetCurrentScore(gameID);
+            var active = GetActiveHand(gameID);
+            string?[] played = { active?.PlayerOneCard, active?.PlayerTwoCard, active?.PlayerThreeCard, active?.PlayerFourCard, active?.PlayerFiveCard, active?.PlayerSixCard };
+            var previousWinner = ScoresService.FindWinningPlayer(played.Take(gameDetails.NumberOfPlayers).ToArray(), active.LeadingSuit, currentScore.TrumpSuit);
+
+            return previousWinner;
+        }
+
+        public int FindPlayerToStartNextRound(string gameID)
+        {
+            var gameDetails = _gameDetailsService.GetDetails(gameID);
+            var currentScore = _scoresService.GetCurrentScore(gameID);
+            var player = (currentScore.Round - 1 + gameDetails.NumberOfPlayers) % gameDetails.NumberOfPlayers;
+
+            return player;
         }
 
         public void PlayCard(string gameID, int player, bool leadingCard, string card)
@@ -67,13 +89,13 @@ namespace Blob_service.Services
 
                 if (!played.Take(numberOfPlayers).Contains(null))
                 {
-                    nextPlayer = _scoreService.TrickEnded(gameID, played, active.LeadingSuit);
+                    nextPlayer = _scoresService.TrickEnded(gameID, played, active.LeadingSuit);
                 }
             }
 
             _db.SaveChanges();
 
-            _hub.Clients.Group(gameID).SendAsync("CardsUpdate", nextPlayer, player, card);
+            _hub.Clients.Group(gameID).SendAsync("CardsUpdate", nextPlayer, player, card, leadingCard);
         }
 
         private static void UpdateHand(int player, string card, IQueryable<SixPlayerHand> table)

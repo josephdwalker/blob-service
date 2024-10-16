@@ -9,12 +9,14 @@ namespace Blob_service.Controllers
     {
         private readonly IBidsService _bidsService;
         private readonly IScoresService _scoresService;
+        private readonly IDeckService _deckService;
         private readonly IGameDetailsService _gameDetailsService;
 
-        public BidsController(IBidsService bidsService, IScoresService scoresService, IGameDetailsService gameDetailsService)
+        public BidsController(IBidsService bidsService, IScoresService scoresService, IDeckService deckService, IGameDetailsService gameDetailsService)
         {
             _bidsService = bidsService;
             _scoresService = scoresService;
+            _deckService = deckService;
             _gameDetailsService = gameDetailsService;
         }
 
@@ -53,6 +55,27 @@ namespace Blob_service.Controllers
             if (bidList[player] != null)
             {
                 return BadRequest("You have already bidded");
+            }
+
+            var nonNullBids = bidList.Where(x => x != null);
+
+            if (!nonNullBids.Any())
+            {
+                var playerToStartNextRound = _deckService.FindPlayerToStartNextRound(gameID);
+
+                if (playerToStartNextRound != player)
+                {
+                    return BadRequest("Not your turn to bid");
+                }
+            }
+            else
+            {
+                var previousPlayer = (player - 1 + gameDetails.NumberOfPlayers) % gameDetails.NumberOfPlayers;
+
+                if (bidList[previousPlayer] == null)
+                {
+                    return BadRequest("Not your turn to bid");
+                }
             }
 
             if (bidList.Where(x => x == null).Count() == 1)

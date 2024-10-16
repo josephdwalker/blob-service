@@ -84,7 +84,6 @@ namespace Blob_service.Controllers
                 return BadRequest("That card is not in your hand");
             }
 
-            var currentScore = _scoresService.GetCurrentScore(gameID);
             var active = _deckService.GetActiveHand(gameID);
             string?[] played = { active?.PlayerOneCard, active?.PlayerTwoCard, active?.PlayerThreeCard, active?.PlayerFourCard, active?.PlayerFiveCard, active?.PlayerSixCard };
 
@@ -93,20 +92,22 @@ namespace Blob_service.Controllers
 
             if (leadingCard)
             {
-                if (activeHands.Length == 0 && (player + 1) % gameDetails.NumberOfPlayers != currentScore.Round % gameDetails.NumberOfPlayers)
+                var nextPlayerToStartRound = _deckService.FindPlayerToStartNextRound(gameID);
+                if (activeHands.Length == 0 && player != nextPlayerToStartRound)
                 {
                     return BadRequest("Not your turn to play a card");
                 }
 
                 if (!played.Take(gameDetails.NumberOfPlayers).Contains(null))
                 {
-                    var previousWinner = ScoresService.FindWinningPlayer(played.Take(gameDetails.NumberOfPlayers).ToArray(), active.LeadingSuit, currentScore.TrumpSuit);
+                    var previousWinner = _deckService.FindPreviousWinner(gameID);
+
                     if (previousWinner != player)
                     {
                         return BadRequest("Not your turn to play a card");
                     }
                 }
-            } 
+            }
             else
             {
                 if (played[player] != null)
@@ -114,7 +115,9 @@ namespace Blob_service.Controllers
                     return BadRequest("You have already played a card");
                 }
 
-                if (played.Take(gameDetails.NumberOfPlayers).ToArray()[(player-1+gameDetails.NumberOfPlayers)%gameDetails.NumberOfPlayers] == null)
+                var previousPlayer = (player - 1 + gameDetails.NumberOfPlayers) % gameDetails.NumberOfPlayers;
+
+                if (played.Take(gameDetails.NumberOfPlayers).ToArray()[previousPlayer] == null)
                 {
                     return BadRequest("Not your turn to play a card");
                 }

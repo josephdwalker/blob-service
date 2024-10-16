@@ -10,6 +10,10 @@ namespace Blob_service.Services.Interfaces
 
         ActiveHand[] GetActiveHands(string gameID);
 
+        int FindPreviousWinner(string gameID);
+
+        int FindPlayerToStartNextRound(string gameID);
+
         void PlayCard(string gameID, int player, bool leadingCard, string card);
     }
 }
